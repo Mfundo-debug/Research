@@ -47,7 +47,7 @@ as scales and reliability scores please refer to the User Guide ELRC2005_Usergui
 
 It also contains other important information regarding the use of the data sets and additional help with SAS and SPSS.
 
-STUDY INFORMATION 
+### STUDY INFORMATION 
 -----------------
 The metadata record contains all the information pertaining to the study displayed on the HSRC data 
 portal.
