@@ -1,0 +1,652 @@
+---
+title: |
+  ![](UKZN-logo.jpg){width=3.5in}
+  
+  STAT810: Masters by Research in Statistics 
+  
+  HIV Risk Among Educatiors in South African Public Schools: A Spatial and Bayesian Analysis
+author: "Mfundo Monchwe"
+date: "`r Sys.Date()`"
+format:
+  html:
+    embed-resources: true
+    theme: flatly
+---
+
+```{=html}
+<style type="text/css">
+  h1.title {
+    text-align: center;
+    
+  }
+h4.author {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+h4.date {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+</style>
+```
+```{=html}
+<style type="text/css">
+.main-container {
+  max-width: 75% !important;
+  margin: auto;
+}
+</style>
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      comment = NA,
+                      include = TRUE
+                      )
+
+library(highcharter)
+library(DT)
+library(tidyverse)
+library(readxl)
+```
+
+::: callout-note
+## Introduction to the HIV/AIDS educators study
+
+The impact of `HIV/AIDS` on various sectors has been a critical areas of study globally, but its effects on the education sector–particularly in South Africa—warrant focused attention. This research aims to explore the consequences of `HIV/AIDS` on South African educators, a pivotal group in shaping the future of the nation's youth. Conducted as a national study across all provinces, this research employs a multifaceted approach to capture a comprehensive image of the epidemic's impact.
+
+The study utilizes both qualitative and quantitative methods to ensure a thorough analysis. Qualitative methods include focus groups and key informant surveys, complemented by archival research through the review of relevant records. Quantitative analysis is achieved through the administration of questionnaires and HIV testing, involving nearly `26,000` educators. The target population encompasses a broad spectrum of individuals within the public education sector, including educators from grades `R to 12`, Further Education and Training bands, students preparing for tutor training, and principals.
+
+By integrating these diverse methodologies, the research provides an in-depth examination of how `HIV/AIDS` affects educators in South Africa, highlighting the challenges and implications for the public education sector. This study aims to contribute valuable insights into the support and interventions needed to mitigate the impact `HIV/AIDS` on educators and ensure the continued effectiveness of the education system.
+:::
+
+```{r}
+
+Edu_data = read.csv("ELRC2004_2005_Educators_data.csv")
+```
+
+#### Number of Responses per gender
+
+```{r}
+#rename col `q1_2` to `RespondentGender`
+Edu_data <- Edu_data |> 
+  rename(RespondentGender = `q1_2`) |>
+  mutate(RespondentGender = recode(RespondentGender, 
+                                   `1` = "Male",
+                                   `2` = "Female",
+                                   .missing = "Did not specify",
+                                   .default = "Did not specify")) 
+```
+
+::: panel-tabset
+## Overall
+
+```{r}
+#plot using higcharter object
+Edu_data |>
+  #filter out `NA` values
+  #filter(!is.na(RespondentGender)) |>
+  group_by(RespondentGender) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),2) * 100)|>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("column", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#1b263b")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses per Gender") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text="Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Western Cape
+
+```{r}
+#check RespondentGender for all provinces=="Western Cape"
+Edu_data |>
+  filter(province == "Western Cape") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on Gender in Western Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Eastern Cape
+
+```{r}
+#check RespondentGender for all provinces=="Eastern Cape"
+Edu_data |>
+  filter(province == "Eastern Cape") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on Gender in Eastern Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Northern Cape
+
+```{r}
+#check RespondentGender for all provinces=="Northern Cape"
+Edu_data |>
+  filter(province == "Northern Cape") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in Northern Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Free State
+
+```{r}
+#check RespondentGender for all provinces=="Free State"
+Edu_data |>
+  filter(province == "Free State") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gende in Free State") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## KwaZulu-Natal
+
+```{r}
+#check RespondentGender for all provinces=="KwaZulu-Natal"
+Edu_data |>
+  filter(province == "KwaZulu-Natal") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in KwaZulu-Natal") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## North West
+
+```{r}
+#check RespondentGender for all provinces=="North West"
+Edu_data |>
+  filter(province == "North West") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender , "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in North West") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Gauteng
+
+```{r}
+#check RespondentGender for all provinces=="Gauteng"
+Edu_data |>
+  filter(province == "Gauteng") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in Gauteng") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+
+```
+
+## Mpumalanga
+
+```{r}
+#check RespondentGender for all provinces=="Mpumalanga"
+Edu_data |>
+  filter(province == "Mpumalanga") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in Mpumalanga") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Limpopo
+
+```{r}
+#check RespondentGender for all provinces=="Limpopo"
+Edu_data |>
+  filter(province == "Limpopo") |>
+  group_by(RespondentGender, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_gender = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_gender, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentGender, y = n, label = Label,
+                         color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses based on gender in Limpopo") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Gender")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+:::
+
+::: callout-important
+## Interpretation
+
+-   This indicates that about `32%` of males are teachers
+
+-   `68%` of females are teachers
+
+-   `2%` of respondents did not indicate their gender
+:::
+
+#### Race group of respondent
+
+```{r}
+#rename `q1_3` to RespondentRace
+Edu_data <- Edu_data |>
+  rename(RespondentRace = q1_3) |>
+  mutate(RespondentRace = recode(RespondentRace,
+                                 `1`="African",
+                                 `2`="White",
+                                 `3` = "Colored",
+                                 `4` ="Indian/Asian",
+                                 `5` = "Other",
+                                 .missing = "Did not specify",
+                                 .default = "Did not specify"))
+```
+
+```{r}
+Edu_data |>
+  #filter(!is.na(RespondentRace)) |>
+  group_by(RespondentRace) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_race = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_race, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondentRace, y = n, label = Label,
+                         color = c("#005378","#1b263b","#415a77","#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses per Race Group") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Race group")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+::: callout-tip
+## Interpretation
+
+-   `70.16%` are Africans
+
+-   `13.61%` fall under white race
+
+-   `13.17%` fall under colored race
+
+-   `0.05%` fall under other race, which is not specified in this case
+:::
+
+#### Nationality
+
+```{r}
+#`q1_3` to `RespondentNationality`
+Edu_data <- Edu_data |>
+  rename(RespondenNationality = q1_4) |>
+  mutate(RespondenNationality = recode(RespondenNationality, 
+                                       `1`="South African", 
+                                       `2`="SA citizen and other", 
+                                       `3` ="Non-SA citizen",
+                                       .missing = "Did not specify",
+                                       .default = "Did not specify"))
+```
+
+```{r}
+Edu_data |>
+  #filter(!is.na(RespondenNationality)) |>
+  group_by(RespondenNationality) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_nationality = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_nationality, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x = RespondenNationality, y = n, label = Label,
+                         color = c("#005378","#1b263b","#415a77","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses per Nationalism") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title = list(text = "Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Nationality")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+#### Living Settlements
+
+```{r}
+Edu_data <- Edu_data |>
+  rename(CurrentLivingArea = q2_14) |>
+  mutate(CurrentLivingArea = recode(CurrentLivingArea,
+                                    `1` = "Urban",
+                                    `2` = "Rural",
+                                    .missing = "Did not specify",
+                                    .default = "Did not specify"))
+
+```
+
+::: panel-tabset
+## Overall
+
+```{r}
+Edu_data |>
+  group_by(CurrentLivingArea) |>
+  summarise(n = n(), .groups ='drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("column", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                         color= c("#005378","#415a77","#778da9")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondents") |>
+  hc_title(text = "Number of Responses per Living Settlements") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Western Cape
+
+```{r}
+#check CurrentLivingArea for all provinces=="Western Cape"
+Edu_data |>
+  filter(province == "Western Cape") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n,label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses Western Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+  
+```
+
+## Eastern Cape
+
+```{r}
+#check CurrentLivingArea for all provinces=="Eastern Cape"
+Edu_data |>
+  filter(province == "Eastern Cape") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Eastern Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Northern Cape
+
+```{r}
+#check CurrentLivingArea for all provinces=="Northern Cape"
+Edu_data |>
+  filter(province == "Northern Cape") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Northern Cape") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Free State
+
+```{r}
+#check CurrentLivingArea for all provinces=="Free State"
+Edu_data |>
+  filter(province == "Free State") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Free State") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## KwaZulu-Natal
+
+```{r}
+#check CurrentLivingArea for all provinces=="KwaZulu-Natal"
+Edu_data |>
+  filter(province == "KwaZulu-Natal") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in KwaZulu-Natal") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## North-West
+
+```{r}
+#check CurrentLivingArea for all provinces=="North-West"
+Edu_data |>
+  filter(province == "North West") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in North-West") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Gauteng
+
+```{r}
+#check CurrentLivingArea for all provinces=="Gauteng"
+Edu_data |>
+  filter(province == "Gauteng") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Gauteng") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Mpumalanga
+
+```{r}
+#check CurrentLivingArea for all provinces=="Mpumalanga"
+Edu_data |>
+  filter(province == "Mpumalanga") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Mpumalanga") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+
+## Limpopo
+
+```{r}
+#check CurrentLivingArea for all provinces=="Limpopo"
+Edu_data |>
+  filter(province == "Limpopo") |>
+  group_by(CurrentLivingArea, province) |>
+  summarise(n = n(), .groups = 'drop') |>
+  mutate(percentage_of_area = round(n/sum(n),4) * 100) |>
+  mutate(Label = paste0(percentage_of_area, "% (", n, ")")) |>
+  arrange(desc(n)) |>
+  hchart("bar", hcaes(x=CurrentLivingArea, y = n, label = Label,
+                      color = c("#778da9","#e0e1dd","#4a4e69")),
+         dataLabels = list(format = "<b>{point.label}</b>", enabled = TRUE),
+         name = "Number of Respondent") |>
+  hc_title(text = "Number of Responses based in Limpopo") |>
+  hc_subtitle(text = "South African Public Schools survey") |>
+  hc_yAxis(title =list(text="Number of Respondents")) |>
+  hc_xAxis(title = list(text = "Living Settlements")) |>
+  hc_exporting(enabled = TRUE) |>
+  hc_chart(backgroundColor = "white")
+```
+:::
